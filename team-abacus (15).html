@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NBE Team Abacus</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d0f14;--surf:#141720;--surf2:#1c2030;--surf3:#222640;
+  --bdr:#252a3a;--bdr2:#2e3448;
+  --acc:#4fffb0;--warn:#ffd166;--dan:#ff6b6b;--pink:#ff6b9d;--info:#7b9cf4;
+  --txt:#e8ecf4;--mut:#6b7694;
+  --mono:'DM Mono',monospace;--disp:'Barlow',sans-serif;
+  --nw:175px;--cw:96px;--sw:120px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{zoom:1.5;}
+body{background:var(--bg);color:var(--txt);font-family:var(--disp);min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(79,255,176,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(79,255,176,.015) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0;}
+.page{position:relative;z-index:1;padding:28px 0 80px;}
+.hdr{padding:0 28px 14px;display:flex;align-items:center;gap:16px;justify-content:space-between;}
+.hdr-left{display:flex;align-items:baseline;gap:14px;}
+.hdr h1{font-family:var(--disp);font-size:34px;font-weight:800;color:var(--txt);}
+.hdr .sub{font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.1em;}
+.plan-btn{display:flex;align-items:center;gap:8px;padding:10px 18px;
+  background:var(--surf2);border:1px solid var(--bdr2);border-radius:10px;
+  font-family:var(--mono);font-size:11px;color:var(--acc);letter-spacing:.08em;
+  cursor:pointer;transition:all .15s;white-space:nowrap;}
+.plan-btn:hover{background:rgba(79,255,176,.08);border-color:var(--acc);}
+.day-tabs{display:flex;gap:4px;margin-left:8px;}
+.day-tab{padding:4px 10px;border-radius:6px;font-family:var(--mono);font-size:10px;
+  background:transparent;border:1px solid var(--bdr2);color:var(--mut);cursor:pointer;transition:all .15s;}
+.day-tab.active{background:var(--acc);border-color:var(--acc);color:#0d0f14;font-weight:700;}
+.strip{display:flex;gap:10px;padding:0 28px 16px;flex-wrap:wrap;}
+.chip{background:var(--surf);border:1px solid var(--bdr);border-radius:8px;padding:8px 14px;
+  font-family:var(--mono);font-size:10px;color:var(--mut);letter-spacing:.07em;}
+.chip strong{color:var(--txt);font-size:15px;display:block;margin-bottom:1px;}
+.chip.ok strong{color:var(--acc);}.chip.warn strong{color:var(--warn);}.chip.dan strong{color:var(--dan);}
+.leg-row{display:flex;gap:16px;padding:0 28px 14px;font-family:var(--mono);font-size:10px;color:var(--mut);flex-wrap:wrap;}
+.leg{display:flex;align-items:center;gap:5px;}
+.ld{width:7px;height:7px;border-radius:50%;}
+.tw{overflow-x:auto;padding-bottom:24px;width:100%;}
+.tw::-webkit-scrollbar{height:6px;}
+.tw::-webkit-scrollbar-track{background:var(--surf);}
+.tw::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:3px;}
+table{border-collapse:separate;border-spacing:0;width:100%;table-layout:fixed;}
+/* Group headers */
+th.gh{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  padding:8px 10px 6px;border-bottom:2px solid var(--bdr);white-space:nowrap;text-align:left;background:var(--bg);}
+th.gh.sit{color:var(--warn);border-bottom-color:var(--warn);}
+th.gh.perf{color:var(--pink);border-bottom-color:var(--pink);}
+th.gh.core{color:var(--acc);border-bottom-color:var(--acc);}
+th.gh.der{color:var(--info);border-bottom-color:var(--info);}
+th.gh.nhd{color:var(--mut);position:sticky;left:0;z-index:30;background:var(--bg);width:210px;min-width:210px;}
+th.gh.thd{color:var(--mut);background:var(--surf3);border-left:2px solid var(--bdr2);width:52px;min-width:52px;text-align:center;}
+/* Col headers */
+th.ch{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);
+  padding:6px 10px 8px;text-align:right;border-bottom:1px solid var(--bdr2);white-space:nowrap;
+  background:var(--surf2);vertical-align:bottom;}
+th.ch.nch{position:sticky;left:0;z-index:30;background:var(--surf2);width:210px;min-width:210px;
+  text-align:left;border-right:2px solid var(--bdr2);}
+th.ch.tch{background:var(--surf3);border-left:2px solid var(--bdr2);width:52px;min-width:52px;}
+th.ch.slh{text-align:left;}
+th.ch .ci{display:block;font-size:11px;margin-bottom:3px;opacity:.7;}
+/* Hidden quota cols */
+th.ch.hidden-col{display:none;}
+td.hidden-col{display:none;}
+/* Cells */
+td{padding:0 10px;border-bottom:1px solid var(--bdr);border-right:1px solid var(--bdr);
+  vertical-align:middle;height:52px;}
+td.ntd{position:sticky;left:0;z-index:10;border-right:2px solid var(--bdr2);
+  width:210px;min-width:210px;}
+td.ttd{border-left:2px solid var(--bdr2);text-align:center;width:52px;min-width:52px;}
+td.sl{padding:4px 10px;text-align:left!important;}
+/* Row colors */
+tr.rep td{background:var(--surf);}
+tr.rep:nth-child(even) td{background:#111420;}
+tr.rep td.ntd{background:var(--surf2);}
+tr.rep:nth-child(even) td.ntd{background:#171b28;}
+tr.rep:hover td{background:#1a2030!important;}
+tr.rep:hover td.ntd{background:#1e2438!important;}
+tr.team td{background:var(--surf3)!important;border-top:2px solid var(--bdr2);}
+td.db{background:#111420!important;}
+tr.rep:nth-child(even) td.db{background:#0f1219!important;}
+tr.team td.db{background:var(--surf3)!important;}
+/* Excluded */
+tr.rep.excl td{opacity:.25;}
+tr.rep.excl{pointer-events:none;}
+tr.rep.excl td.ntd{pointer-events:auto;opacity:.25;}
+/* Checkbox */
+.cbw{display:flex;align-items:center;gap:7px;overflow:hidden;}
+input.rcb{appearance:none;-webkit-appearance:none;width:15px;height:15px;flex-shrink:0;
+  border:1.5px solid var(--bdr2);border-radius:4px;background:transparent;cursor:pointer;transition:all .15s;}
+input.rcb:checked{background:var(--acc);border-color:var(--acc);}
+input.rcb:checked::after{content:'✓';display:block;text-align:center;font-size:10px;color:#0d0f14;line-height:13px;font-weight:900;}
+/* Inputs */
+.ni{background:transparent;border:none;outline:none;font-family:var(--disp);font-size:14px;font-weight:700;color:var(--txt);min-width:0;flex:1;cursor:text;transition:color .2s;}
+.ni::placeholder{color:var(--mut);font-weight:400;}
+.vi{background:transparent;border:none;outline:none;font-family:var(--disp);font-size:15px;font-weight:700;
+  color:var(--txt);width:100%;text-align:right;cursor:text;}
+.vi::placeholder{color:var(--bdr2);}
+.vi:focus{color:var(--acc);}
+td:has(.vi:focus){background:#1a2535!important;}
+/* Sliders */
+.slw{display:flex;flex-direction:column;gap:3px;}
+.slt{display:flex;justify-content:flex-end;}
+.sld{font-family:var(--disp);font-size:14px;font-weight:700;color:var(--acc);}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:3px;background:var(--bdr2);border-radius:2px;outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px rgba(79,255,176,.15);cursor:pointer;}
+input[type=range].wsl::-webkit-slider-thumb{background:var(--warn);box-shadow:0 0 0 3px rgba(255,209,102,.2);}
+input[type=range].dsl::-webkit-slider-thumb{background:var(--dan);box-shadow:0 0 0 3px rgba(255,107,107,.2);}
+.slb{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:var(--mut);}
+/* Outputs */
+.ov{font-family:var(--disp);font-size:15px;font-weight:700;color:var(--info);display:block;width:100%;text-align:right;}
+.ov.ok{color:var(--acc);}.ov.warn{color:var(--warn);}.ov.dan{color:var(--dan);}
+.tv{font-family:var(--disp);font-size:14px;font-weight:700;color:var(--mut);}
+/* Segment badge */
+.seg{font-family:var(--mono);font-size:8px;letter-spacing:.06em;padding:2px 5px;border-radius:3px;margin-left:4px;vertical-align:middle;}
+.seg.fnd{background:rgba(255,209,102,.12);color:var(--warn);border:1px solid rgba(255,209,102,.2);}
+.seg.mment{background:rgba(123,156,244,.12);color:var(--info);border:1px solid rgba(123,156,244,.2);}
+/* Rep lightning button */
+.rpb{background:transparent;border:1.5px solid rgba(79,255,176,.2);border-radius:5px;
+  width:24px;height:24px;cursor:pointer;font-size:12px;display:flex;align-items:center;
+  justify-content:center;transition:all .15s;padding:0;margin:auto;}
+.rpb:hover{background:rgba(79,255,176,.1);border-color:var(--acc);}
+tr.excl .rpb{opacity:.3;pointer-events:none;}
+/* ── MODALS ── */
+.modal-ov{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.72);
+  backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;}
+.modal-ov.open{display:flex;}
+.modal{background:var(--surf);border:1px solid var(--bdr);border-radius:16px;
+  padding:28px;max-width:600px;width:100%;position:relative;max-height:88vh;overflow-y:auto;}
+.modal-close{position:absolute;top:16px;right:16px;background:var(--surf2);border:1px solid var(--bdr);
+  border-radius:6px;width:28px;height:28px;color:var(--mut);cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center;transition:color .15s;}
+.modal-close:hover{color:var(--txt);}
+.modal-eye{font-family:var(--mono);font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--acc);margin-bottom:4px;}
+.modal-title{font-family:var(--disp);font-size:22px;font-weight:800;color:var(--txt);margin-bottom:6px;}
+.modal-ctx{font-family:var(--mono);font-size:11px;color:var(--mut);margin-bottom:16px;
+  padding-bottom:16px;border-bottom:1px solid var(--bdr);line-height:1.7;}
+.modal-body{font-family:var(--mono);font-size:12px;color:var(--txt);line-height:1.8;min-height:100px;}
+.modal-loading{text-align:center;padding:32px 0;color:var(--mut);font-family:var(--mono);font-size:12px;}
+.plan-section{margin-bottom:16px;}
+.plan-section-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin-bottom:7px;}
+.plan-item{background:var(--surf2);border:1px solid var(--bdr);border-left:3px solid var(--acc);
+  border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:11px;line-height:1.6;color:var(--txt);}
+.plan-item.warn{border-left-color:var(--warn);}
+.plan-item.dan{border-left-color:var(--dan);}
+.plan-item.ok{border-left-color:var(--acc);}
+.dtabs{display:flex;gap:6px;margin-bottom:16px;}
+.mdt{padding:6px 14px;border-radius:8px;font-family:var(--mono);font-size:11px;
+  background:var(--surf2);border:1px solid var(--bdr2);color:var(--mut);cursor:pointer;transition:all .15s;}
+.mdt.active{background:var(--acc);border-color:var(--acc);color:#0d0f14;font-weight:700;}
+/* Secret button */
+.secret-btn{position:fixed;top:18px;left:14px;z-index:50;opacity:0.06;
+  background:transparent;border:none;cursor:pointer;font-size:11px;color:var(--mut);
+  font-family:var(--mono);letter-spacing:.08em;transition:opacity .2s;}
+.secret-btn:hover{opacity:.35;}
+</style>
+</head>
+<body>
+
+<!-- Team Plan Modal -->
+<div class="modal-ov" id="planModal" onclick="if(event.target===this)closePlan()">
+  <div class="modal">
+    <button class="modal-close" onclick="closePlan()">✕</button>
+    <div class="modal-eye">Team Intelligence</div>
+    <div class="modal-title" id="planTitle">30-Day Team Plan</div>
+    <div class="modal-ctx" id="planCtx">—</div>
+    <div class="dtabs">
+      <button class="mdt active" onclick="switchTeamDays(30,this)">30 days</button>
+      <button class="mdt" onclick="switchTeamDays(60,this)">60 days</button>
+      <button class="mdt" onclick="switchTeamDays(90,this)">90 days</button>
+    </div>
+    <div class="modal-body" id="planBody"><div class="modal-loading">⟳ Generating plan…</div></div>
+  </div>
+</div>
+
+<!-- Rep Plan Modal -->
+<div class="modal-ov" id="repModal" onclick="if(event.target===this)closeRepPlan()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeRepPlan()">✕</button>
+    <div class="modal-eye">Individual Coaching Plan</div>
+    <div class="modal-title" id="repTitle">—</div>
+    <div class="modal-ctx" id="repCtx">—</div>
+    <div class="dtabs">
+      <button class="mdt active" onclick="switchRepDays(30,this)">30 days</button>
+      <button class="mdt" onclick="switchRepDays(60,this)">60 days</button>
+      <button class="mdt" onclick="switchRepDays(90,this)">90 days</button>
+    </div>
+    <div class="modal-body" id="repBody"><div class="modal-loading">⟳ Generating plan…</div></div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="hdr">
+    <div class="hdr-left">
+      <h1>NBE Team Abacus</h1>
+      <span class="sub">FY2026</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="plan-btn" onclick="openTeamPlan()"><span style="font-size:14px">⚡</span> Team Plan</button>
+      <div class="day-tabs">
+        <button class="day-tab active" onclick="setDays(30,this)">30d</button>
+        <button class="day-tab" onclick="setDays(60,this)">60d</button>
+        <button class="day-tab" onclick="setDays(90,this)">90d</button>
+      </div>
+    </div>
+  </div>
+  <div class="strip" id="strip"></div>
+  <div class="leg-row">
+    <div class="leg"><div class="ld" style="background:var(--acc)"></div>On track</div>
+    <div class="leg"><div class="ld" style="background:var(--warn)"></div>Watch</div>
+    <div class="leg"><div class="ld" style="background:var(--dan)"></div>At risk</div>
+    <div class="leg" style="margin-left:6px;opacity:.3;">· Click numbers to edit · Sliders for Deal Size, Win Rate, Days to Close · Uncheck to exclude</div>
+  </div>
+  <div class="tw"><table id="tbl"></table></div>
+</div>
+
+<button class="secret-btn" onclick="promptPin()">⚙</button>
+
+<script>
+const NOW=new Date(),YS=new Date(NOW.getFullYear(),0,1),YE=new Date(NOW.getFullYear(),11,31);
+const YDAY=Math.round((YE-YS)/86400000)+1,TDOY=Math.round((NOW-YS)/86400000)+1,N=13;
+let planDays=30;
+let quotaVisible=false;
+
+// FND = Foundation (<5k students), MM = Mid-Market/Enterprise
+const reps=[
+  {name:'Dana Haddad',      quota:774363,  closedARR:58627, currentPipe:314899,  openOpps:60, dealSize:3162,  winRate:48, closeDays:36, seg:'FND', pipeAge:81},
+  {name:'Jena Cooper',      quota:1209043, closedARR:24036, currentPipe:1001221, openOpps:48, dealSize:5000,  winRate:57, closeDays:53, seg:'MM/ENT', pipeAge:192},
+  {name:'Julian Bel-Robert',quota:1189124, closedARR:46937, currentPipe:1216317, openOpps:94, dealSize:5078,  winRate:53, closeDays:76, seg:'MM/ENT', pipeAge:164},
+  {name:'Kayla Reckert',    quota:774363,  closedARR:0,     currentPipe:0,       openOpps:0,  dealSize:0,     winRate:0,  closeDays:53, seg:'FND', pipeAge:0},
+  {name:'LeighAnn Sanocki', quota:774363,  closedARR:22422, currentPipe:238240,  openOpps:47, dealSize:2857,  winRate:37, closeDays:35, seg:'FND', pipeAge:81},
+  {name:'Natalie Pottier',  quota:950105,  closedARR:5406,  currentPipe:499692,  openOpps:24, dealSize:5323,  winRate:37, closeDays:72, seg:'MM/ENT', pipeAge:148},
+  {name:'Sean Kelley',      quota:774363,  closedARR:20974, currentPipe:521431,  openOpps:69, dealSize:4393,  winRate:47, closeDays:56, seg:'FND', pipeAge:112},
+  {name:'Shawn Metzger',    quota:950105,  closedARR:28349, currentPipe:1004539, openOpps:28, dealSize:6613,  winRate:35, closeDays:35, seg:'MM/ENT', pipeAge:146},
+  {name:'Sheri Vaks',       quota:774363,  closedARR:54032, currentPipe:353418,  openOpps:62, dealSize:4674,  winRate:40, closeDays:33, seg:'FND', pipeAge:93},
+  {name:'Spike Jackson',    quota:774363,  closedARR:44714, currentPipe:258565,  openOpps:35, dealSize:3760,  winRate:49, closeDays:59, seg:'FND', pipeAge:148},
+  {name:'Susan Casey',      quota:1199084, closedARR:9535,  currentPipe:2266127, openOpps:28, dealSize:21543, winRate:28, closeDays:80, seg:'MM/ENT', pipeAge:212},
+  {name:'Tanner Wilcox',    quota:1129369, closedARR:17173, currentPipe:1514451, openOpps:21, dealSize:0,     winRate:40, closeDays:53, seg:'MM/ENT', pipeAge:66},
+  {name:'Will Conway',      quota:874363,  closedARR:57606, currentPipe:482208,  openOpps:68, dealSize:2209,  winRate:65, closeDays:51, seg:'FND', pipeAge:59},
+];
+const included=Array(N).fill(true);
+included[3]=false;  // Kayla Reckert
+included[11]=false; // Tanner Wilcox
+
+// Columns — quota/quotaRem flagged as sensitive
+function fD(v){if(!v&&v!==0)return'—';if(v>=1e6)return'$'+(v/1e6).toFixed(2)+'M';if(v>=1e3)return'$'+Math.round(v/1e3)+'K';return'$'+Math.round(v);}
+function fN(v){return(v===null||isNaN(v))?'—':Math.round(v).toLocaleString();}
+function fP(v){return Math.round(v)+'%';}
+function fAge(v){return(!v&&v!==0)?'—':Math.round(v)+'d';}
+function fDec(v){return parseFloat(v).toFixed(1);}
+function fY(v){return Math.round(v)+'d';}
+function pD(s){const c=(s||'').replace(/[$,\s]/g,'').toUpperCase();if(c.endsWith('M'))return parseFloat(c)*1e6;if(c.endsWith('K'))return parseFloat(c)*1e3;return parseFloat(c)||0;}
+function pI(s){return parseInt((s||'').replace(/[^\d]/g,''))||0;}
+
+const COLS=[
+  {id:'quota',      lbl:'Quota',          icon:'🎯',grp:'sit', type:'in', fld:'quota',       fmt:fD,parse:pD,smry:'sum',  sensitive:true},
+  {id:'closedARR',  lbl:'Closed ARR',     icon:'✅',grp:'sit', type:'in', fld:'closedARR',   fmt:fD,parse:pD,smry:'sum'},
+  {id:'currentPipe',lbl:'Pipeline',       icon:'📊',grp:'sit', type:'in', fld:'currentPipe', fmt:fD,parse:pD,smry:'sum'},
+  {id:'openOpps',   lbl:'Open Opps',      icon:'🔵',grp:'sit', type:'in', fld:'openOpps',    fmt:fN,parse:pI,smry:'sum'},
+  {id:'pipeAge',    lbl:'Avg Pipe Age',   icon:'⏱', grp:'sit', type:'in', fld:'pipeAge',     fmt:fAge,parse:pI,smry:'avg'},
+  {id:'quotaRem',   lbl:'Quota Left',     icon:'⟳', grp:'perf',type:'out',key:'quotaRem',    fmt:fD,sts:'qRem',smry:'sum',sensitive:true},
+  {id:'dealSize',   lbl:'Deal Size',      icon:'💰',grp:'core',type:'sl', fld:'dealSize',    fmt:fD,min:500,max:50000,step:500,smry:'avg'},
+  {id:'winRate',    lbl:'Win Rate',       icon:'🎯',grp:'core',type:'sl', fld:'winRate',     fmt:fP,min:0,max:100,step:1,smry:'avg',sfn:'wr'},
+  {id:'closeDays',  lbl:'Days to Close',  icon:'📅',grp:'core',type:'sl', fld:'closeDays',   fmt:fY,min:10,max:120,step:1,smry:'avg'},
+  {id:'netOpps',    lbl:'Net Opps Needed',icon:'⟳', grp:'der', type:'out',key:'netNewOpps',  fmt:fN,sts:'nOpps',smry:'sum'},
+  {id:'pipeReq',    lbl:'Pipe Required',  icon:'⟳', grp:'der', type:'out',key:'pipeRequired',fmt:fD,sts:'pReq',smry:'sum'},
+  {id:'oppsWk',     lbl:'Opps / Week',    icon:'⟳', grp:'der', type:'out',key:'oppsPerWeek', fmt:fDec,sfn:'opw',smry:'avg'},
+];
+const GRPS={sit:{lbl:'SITUATION'},perf:{lbl:'PERFORMANCE'},core:{lbl:'CORE VARIABLES'},der:{lbl:'DERIVED'}};
+
+function effWks(r){return Math.max(0.1,Math.max(1,YDAY-TDOY-r.closeDays)*(50/365));}
+function derive(r){
+  const qRem=Math.max(0,r.quota-r.closedARR);
+  const pc=r.currentPipe*(r.winRate/100);
+  const nq=Math.max(0,qRem-pc);
+  const wr=r.winRate>0?r.winRate/100:0.01;
+  const ds=r.dealSize>0?r.dealSize:1;
+  const gno=Math.ceil(nq/(wr*ds));
+  const nno=Math.max(0,gno-r.openOpps);
+  return{quotaRem:qRem,netNewOpps:nno,pipeRequired:nno*ds,oppsPerWeek:nno/Math.max(effWks(r),0.1)};
+}
+function incReps(){return reps.filter((_,i)=>included[i]);}
+function incDer(){return incReps().map(r=>derive(r));}
+function avgWR(){const ir=incReps();return ir.length?ir.reduce((a,r)=>a+r.winRate,0)/ir.length:0;}
+function avgOPW(){const id=incDer();return id.length?id.reduce((a,d)=>a+d.oppsPerWeek,0)/id.length:0;}
+
+function getStatus(col,val,rep){
+  if(col.sfn==='wr'){const a=avgWR();return val>=a*1.1?'ok':val>=a*0.8?'warn':'dan';}
+  if(col.sfn==='opw'){const a=avgOPW();return val<=a*0.8?'ok':val<=a*1.4?'warn':'dan';}
+  if(col.sts==='qRem'){const p=rep.quota>0?val/rep.quota:1;return p<0.25?'ok':p<0.6?'warn':'dan';}
+  if(col.sts==='nOpps')return val<20?'ok':val<80?'warn':'dan';
+  if(col.sts==='pReq')return val===0?'ok':val<rep.quota*0.5?'warn':'dan';
+  return '';
+}
+
+// Status for editable input fields — returns color string
+function inputColor(cid,val,rep){
+  const yearPct=TDOY/YDAY; // how far through the year we are
+  if(cid==='closedARR'){
+    if(!rep.quota)return '';
+    const pace=val/rep.quota;
+    return pace>=yearPct*0.9?'var(--acc)':pace>=yearPct*0.5?'var(--warn)':'var(--dan)';
+  }
+  if(cid==='currentPipe'){
+    if(!rep.quota)return '';
+    const d=derive(rep);
+    const coverage=d.pipeRequired>0?val/d.pipeRequired:val>0?2:0;
+    return coverage>=1.5?'var(--acc)':coverage>=0.7?'var(--warn)':'var(--dan)';
+  }
+  if(cid==='pipeAge'){
+    if(!val)return '';
+    const ratio=rep.closeDays>0?val/rep.closeDays:1;
+    return ratio<=1.2?'var(--acc)':ratio<=2?'var(--warn)':'var(--dan)';
+  }
+  if(cid==='dealSize'){
+    // Compare to segment peers
+    const seg=rep.seg;
+    const peers=reps.filter(r=>r.seg===seg&&r.dealSize>0);
+    if(!peers.length||!val)return '';
+    const avg=peers.reduce((a,r)=>a+r.dealSize,0)/peers.length;
+    return val>=avg*1.1?'var(--acc)':val>=avg*0.8?'var(--warn)':'var(--dan)';
+  }
+  return '';
+}
+
+// Overall rep health — pipeline coverage is the primary signal this early in year
+function repHealthStatus(rep){
+  if(!rep.quota)return '';
+  const d=derive(rep);
+  // Pipeline coverage vs what's still required
+  const pipeCov=d.pipeRequired>0?rep.currentPipe/d.pipeRequired:(rep.currentPipe>0?3:0);
+  // Closed attainment vs year-elapsed pace (lenient — 40% of pace is yellow floor)
+  const yearPct=TDOY/YDAY;
+  const attPct=rep.closedARR/rep.quota;
+  const attScore=attPct>=yearPct*0.8?2:attPct>=yearPct*0.4?1:0;
+  const pipeScore=pipeCov>=1.2?2:pipeCov>=0.6?1:0;
+  // Weighted: pipeline 70%, attainment 30%
+  const score=(pipeScore*0.7)+(attScore*0.3);
+  return score>=1.4?'ok':score>=0.7?'warn':'dan';
+}
+
+// ── SEASONALITY ──────────────────────────────────────────────────────────────────
+// Monthly plan weights derived from actual Plan New Customer ARR bookings curve
+const SEASON={
+  Jan:{pct:1.9,plan:158663},Feb:{pct:3.7,plan:317286},Mar:{pct:4.1,plan:349634},
+  Apr:{pct:4.5,plan:377530},May:{pct:9.0,plan:763561},Jun:{pct:8.7,plan:737049},
+  Jul:{pct:18.2,plan:1540166},Aug:{pct:19.9,plan:1690802},Sep:{pct:8.7,plan:739326},
+  Oct:{pct:9.7,plan:824465},Nov:{pct:5.2,plan:443838},Dec:{pct:6.3,plan:537190}
+};
+const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+// Color intensity per month (high season = green, low = muted)
+const SEASON_COLORS=['#1e3a2e','#1e3a2e','#1e3a2e','#233a28','#2d4a2a','#2a4828',
+                     '#1a5c38','#1a6040','#2a4828','#2d4a2a','#233a28','#1e3a2e'];
+
+function seasonCtx(days){
+  // Figure out which months fall within the next `days` from today
+  const future=new Date(NOW.getTime()+days*86400000);
+  let planInWindow=0,totalPlanRemaining=0;
+  const windowMonths=[];
+  for(let m=0;m<12;m++){
+    const mStart=new Date(NOW.getFullYear(),m,1);
+    const mEnd=new Date(NOW.getFullYear(),m+1,0);
+    if(mEnd<NOW)continue; // past
+    const name=MONTH_NAMES[m];
+    const pct=SEASON[name].pct;
+    const plan=SEASON[name].pct/100*8479510;
+    totalPlanRemaining+=plan;
+    if(mStart<=future){
+      planInWindow+=plan;
+      windowMonths.push({name,pct:SEASON[name].pct});
+    }
+  }
+  const pctOfRemainingYear=(planInWindow/totalPlanRemaining*100).toFixed(0);
+  // Find peak months in window
+  const sorted=[...windowMonths].sort((a,b)=>b.pct-a.pct);
+  const peakMonth=sorted[0]?.name||'';
+  const weeksToJul=Math.round((new Date(NOW.getFullYear(),6,1)-NOW)/604800000);
+  const weeksToAug=Math.round((new Date(NOW.getFullYear(),7,1)-NOW)/604800000);
+  return {
+    pctOfRemainingYear,
+    windowMonths:windowMonths.map(m=>m.name).join(', '),
+    peakMonth,
+    weeksToJul:Math.max(0,weeksToJul),
+    weeksToAug:Math.max(0,weeksToAug),
+    isBuyingSeason:NOW.getMonth()>=5&&NOW.getMonth()<=8, // Jun-Sep
+    summary:`Business is highly seasonal — Q3 (Jul+Aug) = 38% of full year plan. Current window (next ${days}d: ${windowMonths.map(m=>m.name).join('/')||'end of year'}) covers ~${pctOfRemainingYear}% of remaining year's planned bookings. Jul buying season starts in ~${Math.max(0,weeksToJul)} weeks. Key implication: pipeline built NOW feeds the Jul-Aug close surge — deals need to be in discovery 60-90 days before July.`
+  };
+}
+
+
+function build(){
+  const t=document.getElementById('tbl');t.innerHTML='';
+
+  // Group header row
+  const r1=t.insertRow();
+  let th=document.createElement('th');th.className='gh nhd';th.textContent='REP';r1.appendChild(th);
+  ['sit','perf','core','der'].forEach(g=>{
+    const visSpan=COLS.filter(c=>c.grp===g&&!c.sensitive).length;
+    if(visSpan===0)return;
+    th=document.createElement('th');
+    th.colSpan=visSpan;th.className='gh '+g;th.textContent=GRPS[g].lbl;
+    th.id='ghdr-'+g;
+    r1.appendChild(th);
+  });
+  th=document.createElement('th');th.className='gh thd';th.textContent='';r1.appendChild(th);
+
+  // Col label row
+  const r2=t.insertRow();
+  th=document.createElement('th');th.className='ch nch';th.innerHTML='<span class="ci">☑</span>Name';r2.appendChild(th);
+  COLS.forEach(c=>{
+    th=document.createElement('th');
+    const isSl=c.type==='sl',isDer=c.grp==='der'||c.grp==='perf';
+    th.className='ch'+(isSl?' slh':'')+(isDer?' db':'')+(c.sensitive?' hidden-col':'');
+    th.id='hdr-'+c.id;
+    th.innerHTML=`<span class="ci">${c.icon}</span>${c.lbl}`;
+    r2.appendChild(th);
+  });
+  th=document.createElement('th');th.className='ch tch';th.innerHTML='<span class="ci">⚡</span>PLAN';r2.appendChild(th);
+
+  // Rep rows
+  reps.forEach((rep,i)=>{
+    const tr=t.insertRow();tr.className='rep'+(included[i]?'':' excl');tr.id='r'+i;
+    let td=tr.insertCell();td.className='ntd';
+    td.innerHTML=`<div class="cbw">
+      <input type="checkbox" class="rcb" id="cb${i}" ${included[i]?'checked':''} onchange="toggleRep(${i},this)">
+      <input class="ni" value="${rep.name}" placeholder="Name" oninput="reps[${i}].name=this.value">
+      <span class="seg ${rep.seg==='FND'?'fnd':'mment'}">${rep.seg}</span>
+    </div>`;
+    COLS.forEach(c=>{
+      td=tr.insertCell();
+      const isDer=c.grp==='der'||c.grp==='perf';
+      td.className=(isDer?'db ':'')+(c.type==='sl'?'sl':'')+(c.sensitive?' hidden-col':'');
+      td.id=`c${c.id}${i}`;
+      td.style.textAlign=c.type==='sl'?'left':'right';
+      if(c.type==='in'){
+        td.innerHTML=`<input class="vi" value="${c.fmt(rep[c.fld])}" placeholder="—"
+          onblur="onB(${i},'${c.id}',this)" onkeydown="if(event.key==='Enter')this.blur()" onfocus="this.select()">`;
+      } else if(c.type==='sl'){
+        td.innerHTML=`<div class="slw">
+          <div class="slt"><span class="sld" id="sd${c.id}${i}">${c.fmt(rep[c.fld])}</span></div>
+          <input type="range" min="${c.min}" max="${c.max}" step="${c.step}" value="${rep[c.fld]}" id="sl${c.id}${i}" oninput="onSl(${i},'${c.id}',this)">
+          <div class="slb"><span>${c.fmt(c.min)}</span><span>${c.fmt(c.max)}</span></div>
+        </div>`;
+      } else {
+        td.innerHTML=`<span class="ov" id="ov${c.id}${i}">—</span>`;
+      }
+    });
+    td=tr.insertCell();td.className='ttd';
+    td.innerHTML=`<button class="rpb" onclick="openRepPlan(${i})" title="Plan for ${rep.name}">⚡</button>`;
+  });
+
+  // Team summary row
+  const tr=t.insertRow();tr.className='team';
+  let td=tr.insertCell();td.className='ntd';
+  td.innerHTML=`<span style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--mut)">TEAM TOTAL / AVG</span>`;
+  COLS.forEach(c=>{
+    td=tr.insertCell();
+    const isDer=c.grp==='der'||c.grp==='perf';
+    td.className=(isDer?'db ':'')+(c.type==='sl'?'sl':'')+(c.sensitive?' hidden-col':'');
+    td.style.textAlign=c.type==='sl'?'left':'right';
+    td.id='ts'+c.id;
+    td.innerHTML=`<span class="${c.type==='sl'?'tv':'ov'}" id="tsv${c.id}">—</span>`;
+  });
+  td=tr.insertCell();td.className='ttd';
+
+  updateAll();
+}
+
+// ── EVENTS ──────────────────────────────────────────────────────────────────────
+function toggleRep(i,cb){
+  included[i]=cb.checked;
+  document.getElementById('r'+i).classList.toggle('excl',!cb.checked);
+  updateAll();
+}
+function onB(i,cid,el){
+  const c=COLS.find(x=>x.id===cid);
+  reps[i][c.fld]=c.parse(el.value);
+  el.value=c.fmt(reps[i][c.fld]);
+  updateAll();
+}
+function onSl(i,cid,el){
+  const c=COLS.find(x=>x.id===cid);
+  const v=cid==='winRate'?parseInt(el.value):parseFloat(el.value);
+  reps[i][c.fld]=v;
+  const sd=document.getElementById('sd'+cid+i);
+  if(sd)sd.textContent=c.fmt(v);
+  updateAll();
+}
+function setDays(d,btn){
+  planDays=d;
+  document.querySelectorAll('.day-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── UPDATE ──────────────────────────────────────────────────────────────────────
+function updateAll(){
+  const derived=reps.map(r=>derive(r));
+  reps.forEach((rep,i)=>{
+    const d=derived[i];
+    COLS.forEach(c=>{
+      if(c.type==='out'){
+        const el=document.getElementById('ov'+c.id+i);
+        if(!el)return;
+        const val=d[c.key];
+        el.textContent=c.fmt(val);
+        el.className='ov '+getStatus(c,val,rep);
+      }
+      // Color editable input cells
+      if(c.type==='in'){
+        const td=document.getElementById('c'+c.id+i);
+        const inp=td&&td.querySelector('input.vi');
+        if(!inp)return;
+        const color=inputColor(c.id,rep[c.fld],rep);
+        inp.style.color=color||'var(--txt)';
+      }
+      if(c.type==='sl'&&c.sfn==='wr'){
+        const sl=document.getElementById('sl'+c.id+i);
+        const sd=document.getElementById('sd'+c.id+i);
+        const st=getStatus(c,rep.winRate,rep);
+        if(sl)sl.className=st==='ok'?'':st==='warn'?'wsl':'dsl';
+        if(sd)sd.style.color=st==='ok'?'var(--acc)':st==='warn'?'var(--warn)':'var(--dan)';
+      }
+    });
+    // Color rep name when quota is visible
+    updateRepNameColor(i,rep);
+  });
+  const ir=incReps(),id=incDer(),n=ir.length||1;
+  COLS.forEach(c=>{
+    const el=document.getElementById('tsv'+c.id);if(!el)return;
+    if(c.type==='in'){const tot=ir.reduce((a,r)=>a+(r[c.fld]||0),0);el.textContent=c.smry==='avg'?c.fmt(tot/n):c.fmt(tot);}
+    else if(c.type==='sl'){el.textContent=c.fmt(ir.reduce((a,r)=>a+(r[c.fld]||0),0)/n);}
+    else if(c.type==='out'){const vals=id.map(d=>d[c.key]||0);el.textContent=c.fmt(c.smry==='avg'?vals.reduce((a,v)=>a+v,0)/n:vals.reduce((a,v)=>a+v,0));}
+  });
+  updateStrip();
+}
+
+function updateStrip(){
+  const ir=incReps(),id=incDer(),n=ir.length||1;
+  const tQ=ir.reduce((a,r)=>a+r.quota,0);
+  const tC=ir.reduce((a,r)=>a+r.closedARR,0);
+  const tP=ir.reduce((a,r)=>a+r.currentPipe,0);
+  const tR=id.reduce((a,d)=>a+d.pipeRequired,0);
+  const tO=id.reduce((a,d)=>a+d.netNewOpps,0);
+  const aWR=ir.reduce((a,r)=>a+r.winRate,0)/n;
+  const aOPW=id.reduce((a,d)=>a+d.oppsPerWeek,0)/n;
+  const att=tQ>0?tC/tQ*100:0;
+  const cov=tR>0?tP/tR*100:0;
+  const exc=included.filter(v=>!v).length;
+  document.getElementById('strip').innerHTML=`
+    ${exc>0?`<div class="chip"><strong>${n} of ${N}</strong>REPS INCLUDED</div>`:''}
+    <div class="chip ${att>50?'ok':att>20?'warn':'dan'}"><strong>${fD(tC)}</strong>TEAM CLOSED ARR</div>
+    <div class="chip ${att>50?'ok':att>20?'warn':'dan'}"><strong>${att.toFixed(1)}%</strong>QUOTA ATTAINMENT</div>
+    <div class="chip"><strong>${fD(tP)}</strong>TEAM PIPELINE</div>
+    <div class="chip ${cov>200?'ok':cov>100?'warn':'dan'}"><strong>${cov.toFixed(0)}%</strong>PIPE COVERAGE</div>
+    <div class="chip ${aWR>30?'ok':aWR>20?'warn':'dan'}"><strong>${fP(aWR)}</strong>AVG WIN RATE</div>
+    <div class="chip ${aOPW<2?'ok':aOPW<4?'warn':'dan'}"><strong>${fDec(aOPW)}</strong>AVG OPPS/WK NEEDED</div>
+    <div class="chip ${tO<100?'ok':tO<300?'warn':'dan'}"><strong>${fN(tO)}</strong>TOTAL NET OPPS NEEDED</div>
+  `;
+}
+
+// ── SECRET PIN ──────────────────────────────────────────────────────────────────
+function updateRepNameColor(i,rep){
+  const inp=document.getElementById('cb'+i)?.closest('.cbw')?.querySelector('.ni');
+  if(!inp)return;
+  if(!quotaVisible){
+    inp.style.color='var(--txt)';
+    return;
+  }
+  const st=repHealthStatus(rep);
+  inp.style.color=st==='ok'?'var(--acc)':st==='warn'?'var(--warn)':st==='dan'?'var(--dan)':'var(--txt)';
+}
+
+function promptPin(){
+  const pin=prompt('Enter PIN to toggle quota visibility:');
+  if(pin==='11782'){
+    quotaVisible=!quotaVisible;
+    COLS.forEach(c=>{
+      if(!c.sensitive)return;
+      document.getElementById('hdr-'+c.id).classList.toggle('hidden-col',!quotaVisible);
+      document.getElementById('ts'+c.id).classList.toggle('hidden-col',!quotaVisible);
+      reps.forEach((_,i)=>{
+        const td=document.getElementById('c'+c.id+i);
+        if(td)td.classList.toggle('hidden-col',!quotaVisible);
+      });
+    });
+    // Recompute group header colspans
+    ['sit','perf','core','der'].forEach(g=>{
+      const el=document.getElementById('ghdr-'+g);
+      if(!el)return;
+      const visSpan=COLS.filter(c=>c.grp===g&&(!c.sensitive||quotaVisible)).length;
+      el.colSpan=visSpan;
+    });
+    // Recolor names
+    reps.forEach((rep,i)=>updateRepNameColor(i,rep));
+  }
+}
+
+// ── TEAM PLAN ──────────────────────────────────────────────────────────────────
+let cachedTeamPlans={};
+function teamPlanContext(days){
+  const ir=incReps(),id=incDer(),n=ir.length||1;
+  const tQ=ir.reduce((a,r)=>a+r.quota,0);
+  const tC=ir.reduce((a,r)=>a+r.closedARR,0);
+  const tP=ir.reduce((a,r)=>a+r.currentPipe,0);
+  const tO=id.reduce((a,d)=>a+d.netNewOpps,0);
+  const aWR=ir.reduce((a,r)=>a+r.winRate,0)/n;
+  const aOPW=id.reduce((a,d)=>a+d.oppsPerWeek,0)/n;
+  const att=tQ>0?tC/tQ*100:0;
+  const fndReps=ir.filter(r=>r.seg==='FND');
+  const mmReps=ir.filter(r=>r.seg==='MM/ENT');
+  const repLines=ir.map((r,i)=>{
+    const d=id[i];
+    const pct=(r.closedARR/r.quota*100).toFixed(0);
+    return `- ${r.name} [${r.seg}]: closed ${fD(r.closedARR)} (${pct}%), pipeline ${fD(r.currentPipe)} (avg age ${r.pipeAge}d vs ${r.closeDays}d cycle), ${r.openOpps} open opps, ${fD(r.dealSize)} avg deal, ${r.winRate}% win rate, ${r.closeDays}d cycle → ${fN(d.netNewOpps)} net new opps needed, ${fDec(d.oppsPerWeek)} opps/wk`;
+  }).join('\n');
+  return {summary:`${n} active reps (${fndReps.length} FND, ${mmReps.length} MM/ENT). Team quota: ${fD(tQ)}. Closed: ${fD(tC)} (${att.toFixed(1)}%). Pipeline: ${fD(tP)}. Avg win rate: ${fP(aWR)}. Avg opps/wk needed: ${fDec(aOPW)}. Total net opps needed: ${fN(tO)}.`,repLines,att};
+}
+
+async function openTeamPlan(){
+  cachedTeamPlans={};
+  document.getElementById('planModal').classList.add('open');
+  document.querySelectorAll('#planModal .mdt').forEach((b,i)=>b.classList.toggle('active',i===0));
+  await loadTeamPlan(30);
+}
+async function loadTeamPlan(days){
+  document.getElementById('planTitle').textContent=`${days}-Day Team Plan`;
+  document.getElementById('planCtx').textContent='Analyzing included reps…';
+  document.getElementById('planBody').innerHTML='<div class="modal-loading">⟳ Generating plan…</div>';
+  try{
+    const {summary,repLines,att}=teamPlanContext(days);
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',max_tokens:1000,
+        system:`You are a direct B2B SaaS sales manager coach. Generate a specific, honest ${days}-day team plan. Only include reps explicitly listed. Acknowledge segment differences between FND (<5k student population schools) and MM/ENT reps as their deal motion differs.
+
+Respond ONLY with JSON:
+{
+  "headline": "one honest sentence about team situation (use numbers)",
+  "fndFocus": {"title":"max 5 words","body":"2 tactical sentences specific to FND reps and their small-district motion"},
+  "mmFocus": {"title":"max 5 words","body":"2 tactical sentences specific to MM/ENT reps and their longer cycle"},
+  "teamPriorities": [2 objects with "title" and "body" — team-wide actions],
+  "weeklyPace": {"target":"X opps/week per rep on average","pipeline":"$X new pipeline per week team total","rationale":"1 sentence math explanation"},
+  "atRisk": [array of {"name":"...","reason":"one line why they need attention this period"}],
+  "quickWin": "one specific thing the whole team can do this week"
+}
+Raw JSON only, no markdown.`,
+        messages:[{role:'user',content:`${days}-day plan. Team summary: ${summary}\n\nSEASONALITY CONTEXT: ${seasonCtx(days).summary}\n\nRep details:\n${repLines}\n\nBe honest and specific. Use actual dollar amounts and numbers. Factor in the buying season calendar — if this window is pre-peak, emphasize pipeline building; if it overlaps peak, emphasize closing velocity.`}]
+      })
+    });
+    const data=await resp.json();
+    const raw=data.content.map(b=>b.text||'').join('');
+    const plan=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    cachedTeamPlans[days]=plan;
+    renderTeamPlan(plan,days,summary);
+  } catch(e){
+    document.getElementById('planBody').innerHTML=`<div style="color:var(--dan);font-family:var(--mono);font-size:11px;">Error — check connection and try again.</div>`;
+  }
+}
+async function switchTeamDays(days,btn){
+  document.querySelectorAll('#planModal .mdt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(cachedTeamPlans[days])renderTeamPlan(cachedTeamPlans[days],days);
+  else await loadTeamPlan(days);
+}
+function renderTeamPlan(plan,days){
+  document.getElementById('planTitle').textContent=`${days}-Day Team Plan`;
+  document.getElementById('planCtx').innerHTML=`<em>${plan.headline}</em>`;
+  document.getElementById('planBody').innerHTML=`
+    <div class="plan-section">
+      <div class="plan-section-title">Team Priorities</div>
+      ${plan.teamPriorities.map(p=>`<div class="plan-item"><strong>${p.title}</strong><br>${p.body}</div>`).join('')}
+    </div>
+    <div class="plan-section">
+      <div class="plan-section-title">FND Reps (small districts)</div>
+      <div class="plan-item warn"><strong>${plan.fndFocus.title}</strong><br>${plan.fndFocus.body}</div>
+    </div>
+    <div class="plan-section">
+      <div class="plan-section-title">MM / ENT Reps</div>
+      <div class="plan-item" style="border-left-color:var(--info)"><strong>${plan.mmFocus.title}</strong><br>${plan.mmFocus.body}</div>
+    </div>
+    <div class="plan-section">
+      <div class="plan-section-title">Weekly Pace Target</div>
+      <div class="plan-item ok"><strong>${plan.weeklyPace.target} · ${plan.weeklyPace.pipeline}/week</strong><br>${plan.weeklyPace.rationale}</div>
+    </div>
+    <div class="plan-section">
+      <div class="plan-section-title">Quick Win This Week</div>
+      <div class="plan-item ok">${plan.quickWin}</div>
+    </div>
+    <div class="plan-section">
+      <div class="plan-section-title">Reps Needing Attention</div>
+      ${plan.atRisk.map(r=>`<div class="plan-item warn"><strong>${r.name}</strong> — ${r.reason}</div>`).join('')}
+    </div>`;
+}
+function closePlan(){document.getElementById('planModal').classList.remove('open');}
+
+// ── REP PLAN ───────────────────────────────────────────────────────────────────
+let currentRepIdx=null,cachedRepPlans={};
+function openRepPlan(i){
+  currentRepIdx=i;cachedRepPlans={};
+  const rep=reps[i];
+  const d=derive(rep);
+  const att=(rep.quota>0?(rep.closedARR/rep.quota*100):0).toFixed(1);
+  const pipeCredit=Math.round(rep.currentPipe*(rep.winRate/100));
+  const fndAvgDeal=reps.filter(r=>r.seg==='FND'&&r.dealSize>0).reduce((a,r,_,arr)=>a+r.dealSize/arr.length,0);
+  const mmAvgDeal=reps.filter(r=>r.seg==='MM/ENT'&&r.dealSize>0).reduce((a,r,_,arr)=>a+r.dealSize/arr.length,0);
+  const segAvg=rep.seg==='FND'?fndAvgDeal:mmAvgDeal;
+  document.getElementById('repModal').classList.add('open');
+  document.getElementById('repTitle').textContent=`${rep.name}`;
+  document.getElementById('repCtx').innerHTML=
+    `<span style="color:${rep.seg==='FND'?'var(--warn)':'var(--info)'}">${rep.seg}</span> · Pipeline <strong style="color:var(--acc)">${fD(rep.currentPipe)}</strong> · Closed <strong style="color:var(--acc)">${fD(rep.closedARR)}</strong> (${att}%) · ${rep.winRate}% win rate · ${fD(rep.dealSize)} avg deal · ${rep.closeDays}d cycle · ${fN(d.netNewOpps)} net opps needed`;
+  document.querySelectorAll('#repModal .mdt').forEach((b,j)=>b.classList.toggle('active',j===0));
+  loadRepPlan(i,30,{att,pipeCredit,d,segAvg});
+}
+async function loadRepPlan(i,days,ctx){
+  const rep=reps[i];
+  if(!ctx){
+    const d=derive(rep);
+    const att=(rep.quota>0?(rep.closedARR/rep.quota*100):0).toFixed(1);
+    const pipeCredit=Math.round(rep.currentPipe*(rep.winRate/100));
+    const fndAvgDeal=reps.filter(r=>r.seg==='FND'&&r.dealSize>0).reduce((a,r,_,arr)=>a+r.dealSize/arr.length,0);
+    const mmAvgDeal=reps.filter(r=>r.seg==='MM/ENT'&&r.dealSize>0).reduce((a,r,_,arr)=>a+r.dealSize/arr.length,0);
+    const segAvg=rep.seg==='FND'?fndAvgDeal:mmAvgDeal;
+    ctx={att,pipeCredit,d,segAvg};
+  }
+  const {att,pipeCredit,d,segAvg}=ctx;
+  document.getElementById('repBody').innerHTML='<div class="modal-loading">⟳ Generating plan…</div>';
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',max_tokens:900,
+        system:`You are a direct, honest B2B SaaS sales coach generating a ${days}-day individual plan. Be blunt. Use their actual numbers.
+
+HISTORICAL CAPACITY REALITY (critical context):
+- Last year, the top rep on this team closed ~200 deals — the best anyone has done
+- Only 3 of 17 reps closed over 100 deals
+- This means: if a rep needs 200+ net new opps to hit quota, deal volume alone CANNOT get them there — other levers (deal size, win rate) are not optional, they are the only path
+- If a rep needs 100-200 opps, it's extremely difficult and requires elite activity levels plus deal size improvement
+- Be honest about this math. Don't write a plan that implies someone can close 300 deals.
+
+HIERARCHY OF WHAT MATTERS (apply in this order):
+1. DEAL SIZE — if their avg deal size makes quota mathematically brutal given capacity constraints, this is THE issue. Show the math: what does quota look like at current deal size vs +$1K, +$2K higher. Be specific.
+2. WIN RATE — if below segment peers, it's a skill/targeting issue worth addressing.
+3. PIPELINE COVERAGE — only flag if genuinely thin relative to what's needed.
+4. PIPE AGE — only mention if it's extreme (3×+ their close cycle). Most reps carry aging pipe. Don't waste coaching focus on normal staleness.
+
+Segment context: FND = small school districts <5k students, high-volume/lower-ACV motion. MM/ENT = larger districts, complex cycles, bigger deals.
+
+Respond ONLY with JSON:
+{
+  "assessment": "1-2 brutally honest sentences — if the opps needed exceeds what's historically achievable, say so and name deal size as the only viable lever",
+  "topPriority": {"title":"max 5 words","body":"2 specific sentences — if deal size is the #1 lever, this should be about deal size, not pipeline volume"},
+  "weeklyTargets": {"opps": number, "pipeline": dollar_number, "rationale": "1 sentence with math — show how deal size improvement changes the required opps count"},
+  "coachingFocus": [2 objects with "title" and "body" — rank by actual impact on quota math, not by what's easiest to coach],
+  "warning": "honest sentence about biggest year-end risk, or null if on track"
+}
+Raw JSON only.`,
+        messages:[{role:'user',content:`${days}-day plan for ${rep.name} [${rep.seg} segment]:
+
+Quota: ${fD(rep.quota)}
+Closed ARR: ${fD(rep.closedARR)} (${att}% attainment)
+Quota remaining: ${fD(d.quotaRem)}
+Current pipeline: ${fD(rep.currentPipe)}
+Expected pipeline revenue (${rep.winRate}% win rate): ${fD(pipeCredit)}
+Open opps: ${rep.openOpps}
+Avg deal size: ${fD(rep.dealSize)} — SEGMENT PEER AVG: ${fD(Math.round(segAvg))}${rep.dealSize>0&&rep.dealSize<segAvg*0.8?' ⚠ SIGNIFICANTLY BELOW PEERS':rep.dealSize>0&&rep.dealSize<segAvg?' (below peers)':' (at/above peers)'}
+Opps needed to hit quota at CURRENT deal size: ${rep.dealSize>0?fN(Math.ceil(d.quotaRem/((rep.winRate/100)*rep.dealSize))):'n/a'}
+Opps needed to hit quota at PEER AVG deal size (${fD(Math.round(segAvg))}): ${segAvg>0?fN(Math.ceil(d.quotaRem/((rep.winRate/100)*segAvg))):'n/a'}
+Win rate: ${rep.winRate}% (segment peer avg: ${reps.filter(r=>r.seg===rep.seg&&included[reps.indexOf(r)]).reduce((a,r,_,arr)=>a+r.winRate/arr.length,0).toFixed(0)}%)
+Avg days to close: ${rep.closeDays}d
+Avg pipeline age: ${rep.pipeAge}d${rep.pipeAge>rep.closeDays*3?' (EXTREME — 3× close cycle, worth flagging)':' (normal — do not make this a focus)'}
+Net new opps still needed: ${fN(d.netNewOpps)}${d.netNewOpps>200?' ⚠ EXCEEDS HISTORICAL MAX (top rep ever closed ~200/yr — this is not achievable on volume alone)':d.netNewOpps>100?' ⚠ VERY DIFFICULT (only 3 of 17 reps have ever closed 100+ deals in a year)':''}
+Pipeline still required: ${fD(d.pipeRequired)}
+New opps per week needed: ${fDec(d.oppsPerWeek)}
+
+SEASONALITY CONTEXT: ${seasonCtx(days).summary}
+Factor this into timing advice — e.g. if July peak is ${seasonCtx(days).weeksToJul} weeks away and their close cycle is ${rep.closeDays} days, advise when they need deals in each stage to close in the peak window.`}]
+      })
+    });
+    const data=await resp.json();
+    const raw=data.content.map(b=>b.text||'').join('');
+    const plan=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    cachedRepPlans[days]={plan,ctx};
+    renderRepPlan(plan,days,rep);
+  } catch(e){
+    document.getElementById('repBody').innerHTML=`<div style="color:var(--dan);font-family:var(--mono);font-size:11px;">Error — check connection and try again.</div>`;
+  }
+}
+async function switchRepDays(days,btn){
+  document.querySelectorAll('#repModal .mdt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(cachedRepPlans[days])renderRepPlan(cachedRepPlans[days].plan,days,reps[currentRepIdx]);
+  else await loadRepPlan(currentRepIdx,days,null);
+}
+function renderRepPlan(plan,days,rep){
+  document.getElementById('repTitle').textContent=`${rep.name} — ${days}-Day Plan`;
+  document.getElementById('repBody').innerHTML=`
+    <div class="plan-section">
+      <div class="plan-item ${plan.warning?'warn':'ok'}">${plan.assessment}</div>
+    </div>
+    <div class="plan-section">
+      <div class="plan-section-title">Top Priority</div>
+      <div class="plan-item"><strong>${plan.topPriority.title}</strong><br>${plan.topPriority.body}</div>
+    </div>
+    <div class="plan-section">
+      <div class="plan-section-title">Weekly Targets</div>
+      <div class="plan-item ok"><strong>${plan.weeklyTargets.opps} net new opps/week · ${fD(plan.weeklyTargets.pipeline)}/month new pipeline</strong><br>${plan.weeklyTargets.rationale}</div>
+    </div>
+    <div class="plan-section">
+      <div class="plan-section-title">Coaching Focus</div>
+      ${plan.coachingFocus.map(c=>`<div class="plan-item"><strong>${c.title}</strong><br>${c.body}</div>`).join('')}
+    </div>
+    ${plan.warning?`<div class="plan-section"><div class="plan-section-title">Risk</div><div class="plan-item dan">${plan.warning}</div></div>`:''}`;
+}
+function closeRepPlan(){document.getElementById('repModal').classList.remove('open');currentRepIdx=null;}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePlan();closeRepPlan();}});
+build();
+</script>
+</body>
+</html>

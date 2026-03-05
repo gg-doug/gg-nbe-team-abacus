@@ -764,7 +764,7 @@ async function loadTeamPlan(days){
   try{
     const{summary,repLines,att}=teamPlanContext(days);
     const headers={'Content-Type':'application/json'};
-    if(getApiKey()){headers['x-api-key']=getApiKey();headers['anthropic-version']='2023-06-01';}
+    if(getApiKey()){headers['x-api-key']=getApiKey();headers['anthropic-version']='2023-06-01';headers['anthropic-dangerous-direct-browser-access']='true';}
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',headers,
       body:JSON.stringify({
@@ -857,7 +857,7 @@ async function loadRepPlan(i,days,ctx){
   document.getElementById('repBody').innerHTML='<div class="modal-loading">Generating analysis…</div>';
   try{
     const repHeaders={'Content-Type':'application/json'};
-    if(getApiKey()){repHeaders['x-api-key']=getApiKey();repHeaders['anthropic-version']='2023-06-01';}
+    if(getApiKey()){repHeaders['x-api-key']=getApiKey();repHeaders['anthropic-version']='2023-06-01';repHeaders['anthropic-dangerous-direct-browser-access']='true';}
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',headers:repHeaders,
       body:JSON.stringify({
